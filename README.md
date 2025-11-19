@@ -24,15 +24,7 @@ An advanced AI-powered forensic analysis system for processing Universal Forensi
 ## 🏗️ Architecture
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   React.js      │    │   FastAPI       │    │   Databases     │
-│   Frontend      │◄──►│   Backend       │◄──►│                 │
-│                 │    │                 │    │ • PostgreSQL    │
-│ • Interactive   │    │ • UFDR Parser   │    │ • Qdrant        │
-│   Data Blocks   │    │ • AI Service    │    │ • Neo4j         │
-│ • Query UI      │    │ • Data Processor│    │ • Redis         │
-│ • Report Gen    │    │ • Schema Service│    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+![alt text](image.png)
 ```
 
 ### Key Components
@@ -84,7 +76,7 @@ Parsed UFDR Data
    │ • Media Files                       │
    ├─────────────────────────────────────┤
    │ Qdrant: Vector Embeddings           │
-   │ • Semantic Search Vectors          │
+   │ • Semantic Search Vectors           │
    │ • Content Embeddings                │
    │ • Metadata Vectors                  │
    ├─────────────────────────────────────┤
@@ -134,9 +126,9 @@ Report Request
    │         Report Types                │
    ├─────────────────────────────────────┤
    │ • Comprehensive Analysis            │
-   │ • Criminal Risk Assessment         │
-   │ • Key Findings                     │
-   │ • Recommendations                  │
+   │ • Criminal Risk Assessment          │
+   │ • Key Findings                      │
+   │ • Recommendations                   │
    │ • PDF Export                        │
    └─────────────────────────────────────┘
 ```
