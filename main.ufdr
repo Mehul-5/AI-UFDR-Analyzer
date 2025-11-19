@@ -1,0 +1,376 @@
+{
+  "ufdr_version": "2.1",
+  "device_info": {
+    "manufacturer": "Samsung",
+    "model": "Galaxy S23 Ultra",
+    "os_version": "Android 14.0",
+    "imei": "35x1245678910234",
+    "serial_number": "IND9AZ8KT2",
+    "phone_number": "+91 98765 43210",
+    "extraction_date": "2025-09-27T16:10:00Z",
+    "extraction_tool": "Cellebrite UFED Premium",
+    "case_officer": "Inspector Rajesh Kumar"
+  },
+  "chat_records": [
+    {
+      "app_name": "WhatsApp",
+      "sender_number": "+91 98765 43210",
+      "receiver_number": "+91 99123 45678",
+      "message_content": "ED hearing is scheduled for Friday. All documents are ready for review.",
+      "timestamp": "2025-09-26T12:25:00Z",
+      "message_type": "text",
+      "is_deleted": false,
+      "metadata": {
+        "message_id": "wa_in_001",
+        "thread_id": "ed_hearing",
+        "encryption": "end_to_end"
+      }
+    },
+    {
+      "app_name": "WhatsApp",
+      "sender_number": "+91 99123 45678",
+      "receiver_number": "+91 98765 43210",
+      "message_content": "Arrangements for 30 lakh cash will be made tomorrow. Ensure there are no records left.",
+      "timestamp": "2025-09-26T13:00:00Z",
+      "message_type": "text",
+      "is_deleted": false,
+      "metadata": {
+        "message_id": "wa_in_002",
+        "thread_id": "cash_transfer",
+        "encryption": "end_to_end"
+      }
+    },
+    {
+      "app_name": "Telegram",
+      "sender_number": "+91 98111 22334",
+      "receiver_number": "+91 98765 43210",
+      "message_content": "Hawala channel is set up. Money can be sent from Mumbai to Delhi without tracing.",
+      "timestamp": "2025-09-26T15:05:00Z",
+      "message_type": "text",
+      "is_deleted": false,
+      "metadata": {
+        "message_id": "tg_in_001",
+        "thread_id": "hawala_ops",
+        "encryption": "secret_chat"
+      }
+    },
+    {
+      "app_name": "Signal",
+      "sender_number": "+91 98765 43210",
+      "receiver_number": "+91 99717 97899",
+      "message_content": "Property registry will be completed tonight. All documents are in order.",
+      "timestamp": "2025-09-27T09:45:00Z",
+      "message_type": "text",
+      "is_deleted": false,
+      "metadata": {
+        "message_id": "sg_in_001",
+        "thread_id": "property_docs",
+        "encryption": "signal_protocol"
+      }
+    },
+    {
+      "app_name": "WhatsApp",
+      "sender_number": "+91 98765 43210",
+      "receiver_number": "+91 98345 67123",
+      "message_content": "Transfer through the Chennai branch is flagged. Use the Kolkata channel for the next transaction.",
+      "timestamp": "2025-09-28T10:10:00Z",
+      "message_type": "text",
+      "is_deleted": false,
+      "metadata": {
+        "message_id": "wa_in_003",
+        "thread_id": "alternate_route",
+        "encryption": "end_to_end"
+      }
+    },
+    {
+      "app_name": "Telegram",
+      "sender_number": "+91 99001 23456",
+      "receiver_number": "+91 98765 43210",
+      "message_content": "Received the gold bars. Courier is paid and will not speak. Check the vault tomorrow.",
+      "timestamp": "2025-09-28T11:16:00Z",
+      "message_type": "text",
+      "is_deleted": false,
+      "metadata": {
+        "message_id": "tg_in_002",
+        "thread_id": "gold_delivery",
+        "encryption": "secret_chat"
+      }
+    },
+    {
+      "app_name": "WhatsApp",
+      "sender_number": "+91 98765 43210",
+      "receiver_number": "+91 93541 78256",
+      "message_content": "Income Tax team visited today. Files were hidden per plan. No evidence collected.",
+      "timestamp": "2025-09-28T14:32:00Z",
+      "message_type": "text",
+      "is_deleted": false,
+      "metadata": {
+        "message_id": "wa_in_004",
+        "thread_id": "tax_raid",
+        "encryption": "end_to_end"
+      }
+    },
+    {
+      "app_name": "Signal",
+      "sender_number": "+91 98765 43210",
+      "receiver_number": "+91 98133 44556",
+      "message_content": "Meeting with lawyer will be at 6 PM. Bring the updated client list.",
+      "timestamp": "2025-09-29T08:00:00Z",
+      "message_type": "text",
+      "is_deleted": false,
+      "metadata": {
+        "message_id": "sg_in_002",
+        "thread_id": "legal_meeting",
+        "encryption": "signal_protocol"
+      }
+    }
+  ],
+  "call_records": [
+    {
+      "caller_number": "+91 98765 43210",
+      "receiver_number": "+91 99123 45678",
+      "call_type": "outgoing",
+      "duration": 542,
+      "timestamp": "2025-09-26T11:15:00Z",
+      "time": "11:15 AM",
+      "metadata": {
+        "call_id": "in_call_001",
+        "call_quality": "Encrypted",
+        "location": "Delhi"
+      }
+    },
+    {
+      "caller_number": "+91 98111 22334",
+      "receiver_number": "+91 98765 43210",
+      "call_type": "incoming",
+      "duration": 311,
+      "timestamp": "2025-09-26T15:09:00Z",
+      "time": "03:09 PM",
+      "metadata": {
+        "call_id": "in_call_002",
+        "call_quality": "Local",
+        "location": "Mumbai"
+      }
+    },
+    {
+      "caller_number": "+91 98765 43210",
+      "receiver_number": "+91 99717 97899",
+      "call_type": "outgoing",
+      "duration": 240,
+      "timestamp": "2025-09-27T08:00:00Z",
+      "time": "08:00 AM",
+      "metadata": {
+        "call_id": "in_call_003",
+        "call_quality": "Encrypted",
+        "location": "Delhi"
+      }
+    },
+    {
+      "caller_number": "+91 98345 67123",
+      "receiver_number": "+91 98765 43210",
+      "call_type": "incoming",
+      "duration": 197,
+      "timestamp": "2025-09-28T10:25:00Z",
+      "time": "10:25 AM",
+      "metadata": {
+        "call_id": "in_call_004",
+        "call_quality": "National",
+        "location": "Kolkata"
+      }
+    },
+    {
+      "caller_number": "+91 99001 23456",
+      "receiver_number": "+91 98765 43210",
+      "call_type": "incoming",
+      "duration": 456,
+      "timestamp": "2025-09-28T11:18:00Z",
+      "time": "11:18 AM",
+      "metadata": {
+        "call_id": "in_call_005",
+        "call_quality": "Secured",
+        "location": "Bangalore"
+      }
+    },
+    {
+      "caller_number": "+91 98765 43210",
+      "receiver_number": "+91 93541 78256",
+      "call_type": "outgoing",
+      "duration": 350,
+      "timestamp": "2025-09-28T14:15:00Z",
+      "time": "02:15 PM",
+      "metadata": {
+        "call_id": "in_call_006",
+        "call_quality": "Missed",
+        "location": "Delhi"
+      }
+    },
+    {
+      "caller_number": "+91 98765 43210",
+      "receiver_number": "+91 98133 44556",
+      "call_type": "outgoing",
+      "duration": 109,
+      "timestamp": "2025-09-29T08:05:00Z",
+      "time": "08:05 AM",
+      "metadata": {
+        "call_id": "in_call_007",
+        "call_quality": "Encrypted",
+        "location": "Delhi"
+      }
+    }
+  ],
+  "contacts": [
+    {
+      "name": "Amit Verma",
+      "phone_numbers": ["+91 99123 45678"],
+      "email_addresses": ["amit.verma@indbank.in"],
+      "metadata": {
+        "contact_id": "in_contact_001",
+        "relationship": "Banking Channel",
+        "risk_level": "High",
+        "specialization": "Hawala Operations",
+        "last_contact": "2025-09-26T13:00:00Z"
+      }
+    },
+    {
+      "name": "Neha Sharma",
+      "phone_numbers": ["+91 98111 22334"],
+      "email_addresses": ["neha.sharma@mumbaicorp.com"],
+      "metadata": {
+        "contact_id": "in_contact_002",
+        "relationship": "Corporate Liaison",
+        "risk_level": "Medium",
+        "specialization": "Financial Transfers",
+        "last_contact": "2025-09-26T15:05:00Z"
+      }
+    },
+    {
+      "name": "Rajat Bansal",
+      "phone_numbers": ["+91 99717 97899"],
+      "email_addresses": ["rajat.bansal@delhiholdings.in"],
+      "metadata": {
+        "contact_id": "in_contact_003",
+        "relationship": "Property Dealer",
+        "risk_level": "Low",
+        "specialization": "Asset Documentation",
+        "last_contact": "2025-09-27T09:45:00Z"
+      }
+    },
+    {
+      "name": "Priya Sinha",
+      "phone_numbers": ["+91 98345 67123"],
+      "email_addresses": ["priya.sinha@kolkatatraders.com"],
+      "metadata": {
+        "contact_id": "in_contact_004",
+        "relationship": "Alternate Banking",
+        "risk_level": "Medium",
+        "specialization": "Alternate Transfers",
+        "last_contact": "2025-09-28T10:10:00Z"
+      }
+    },
+    {
+      "name": "Manoj Prasad",
+      "phone_numbers": ["+91 99001 23456"],
+      "email_addresses": ["manoj.prasad@bangaloregold.com"],
+      "metadata": {
+        "contact_id": "in_contact_005",
+        "relationship": "Courier Ops",
+        "risk_level": "High",
+        "specialization": "Gold Transfers",
+        "last_contact": "2025-09-28T11:16:00Z"
+      }
+    },
+    {
+      "name": "Sakshi Jain",
+      "phone_numbers": ["+91 93541 78256"],
+      "email_addresses": ["sakshi.jain@taxplanners.in"],
+      "metadata": {
+        "contact_id": "in_contact_006",
+        "relationship": "Tax Consultant",
+        "risk_level": "Low",
+        "specialization": "Legal Advice",
+        "last_contact": "2025-09-28T14:32:00Z"
+      }
+    },
+    {
+      "name": "Arun Mehra",
+      "phone_numbers": ["+91 98133 44556"],
+      "email_addresses": ["arun.mehra@delhilaw.in"],
+      "metadata": {
+        "contact_id": "in_contact_007",
+        "relationship": "Legal Team",
+        "risk_level": "Medium",
+        "specialization": "Legal Representation",
+        "last_contact": "2025-09-29T08:00:00Z"
+      }
+    }
+  ],
+  "media_files": [
+    {
+      "filename": "ind_hawala_list.xlsx",
+      "file_path": "/storage/financial/ind_hawala_list.xlsx",
+      "file_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "file_size": 2621440,
+      "created_date": "2025-09-20T09:10:00Z",
+      "modified_date": "2025-09-26T12:30:00Z",
+      "hash_md5": "abcd1234indhawala",
+      "hash_sha256": "xyz987654indhawalaops",
+      "metadata": {
+        "file_id": "in_financial_001",
+        "classification": "Financial Records",
+        "keywords": ["hawala", "indian finance", "fraud list"],
+        "record_count": "250 transactions"
+      }
+    },
+    {
+      "filename": "property_docs_delhi.pdf",
+      "file_path": "/storage/assets/property_docs_delhi.pdf",
+      "file_type": "application/pdf",
+      "file_size": 3280896,
+      "created_date": "2025-09-25T14:00:00Z",
+      "modified_date": "2025-09-27T09:00:00Z",
+      "hash_md5": "indpropdocs8765",
+      "hash_sha256": "pdf98765propdocsindian",
+      "metadata": {
+        "file_id": "in_assets_001",
+        "classification": "Asset Documentation",
+        "keywords": ["property", "registry", "delhi", "real estate"],
+        "total_value": "₹98,00,000"
+      }
+    },
+    {
+      "filename": "gold_transfer_log.pdf",
+      "file_path": "/storage/assets/gold_transfer_log.pdf",
+      "file_type": "application/pdf",
+      "file_size": 1258291,
+      "created_date": "2025-09-28T11:20:00Z",
+      "modified_date": "2025-09-28T11:25:00Z",
+      "hash_md5": "goldbarstrans876",
+      "hash_sha256": "goldtran9876indian",
+      "metadata": {
+        "file_id": "in_assets_002",
+        "classification": "Asset Documentation",
+        "keywords": ["gold", "vault", "courier", "bangalore"],
+        "total_value": "₹65,50,000"
+      }
+    }
+  ],
+  "metadata": {
+    "extraction_date": "2025-09-27T16:10:00Z",
+    "case_info": {
+      "case_number": "IND-FRAUD-0927-ED",
+      "investigator": "Inspector Rajesh Kumar",
+      "department": "Economic Offences Wing",
+      "description": "Money laundering, gold transfers, illegal property transactions & alternate banking using Indian hawala channel.",
+      "priority": "High",
+      "classification": "Confidential",
+      "estimated_loss": "₹4,25,50,000"
+    },
+    "device_owner": {
+      "name": "Suresh Choudhary",
+      "alias": ["S. Chaudhary", "SC Holdings", "Choudhary Capital"],
+      "suspected_role": "Hawala Kingpin",
+      "risk_assessment": "High",
+      "flight_risk": "Medium"
+    }
+  }
+}
