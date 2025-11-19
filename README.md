@@ -23,9 +23,10 @@ An advanced AI-powered forensic analysis system for processing Universal Forensi
 
 ## 🏗️ Architecture
 
-```
-![alt text](image.png)
-```
+
+![image alt](https://raw.githubusercontent.com/Mehul-5/AI-UFDR-Analyzer/refs/heads/main/Architecture.png)
+
+
 
 ### Key Components
 - **AI Service**: LLM-powered query processing with dynamic response generation
