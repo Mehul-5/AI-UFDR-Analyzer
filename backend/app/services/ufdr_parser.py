@@ -9,11 +9,13 @@ import tempfile
 from pathlib import Path
 import sqlite3
 import pandas as pd
+from app.parsers.chat_parser import ChatParser
 
 
 class UFDRParser:
     def __init__(self):
         self.supported_formats = ['.ufdr']
+        self.chat_parser = ChatParser()
     
     def parse_ufdr_file(self, file_path: str) -> Dict[str, Any]:
         """Parse .ufdr files in a dynamic way:
@@ -266,7 +268,7 @@ class UFDRParser:
                 schema[t] = cols
             
             # Extract chats (WhatsApp/SMS-like)
-            self._extract_chats(cursor, schema, parsed)
+            self.chat_parser.extract(cursor, schema, parsed)
             # Extract calls
             self._extract_calls(cursor, schema, parsed)
             # Extract contacts
@@ -280,60 +282,7 @@ class UFDRParser:
         cols_lower = set(c.lower() for c in cols)
         return all(req.lower() in cols_lower for req in required)
 
-    def _extract_chats(self, cursor: sqlite3.Cursor, schema: Dict[str, List[str]], parsed: Dict[str, Any]) -> None:
-        """Schema-driven chat extraction without regex, no hardcoded app assumptions.
-        Heuristics are based on column presence and types.
-        """
-        for t, cols in schema.items():
-            try:
-                lower_cols = [c.lower() for c in cols]
-                # Candidate text columns
-                text_candidates = [c for c in lower_cols if any(k in c for k in ['data', 'message', 'body', 'text', 'content'])]
-                # Candidate sender/receiver columns
-                sender_candidates = [c for c in lower_cols if any(k in c for k in ['sender', 'from', 'author', 'address', 'src', 'caller'])]
-                receiver_candidates = [c for c in lower_cols if any(k in c for k in ['receiver', 'to', 'dest', 'remote', 'chat', 'recipient', 'callee'])]
-                # Candidate timestamp columns
-                ts_candidates = [c for c in lower_cols if any(k in c for k in ['time', 'date', 'timestamp'])]
-                if not text_candidates:
-                    continue
-                # Build select columns dynamically
-                select_cols: List[str] = []
-                sel_sender = sender_candidates[0] if sender_candidates else None
-                sel_receiver = receiver_candidates[0] if receiver_candidates else None
-                sel_text = text_candidates[0]
-                sel_ts = ts_candidates[0] if ts_candidates else None
-                if sel_sender:
-                    select_cols.append(sel_sender)
-                if sel_receiver:
-                    select_cols.append(sel_receiver)
-                select_cols.append(sel_text)
-                if sel_ts:
-                    select_cols.append(sel_ts)
-                query = f"SELECT {', '.join(select_cols)} FROM {t}"
-                for row in cursor.execute(query):
-                    idx = 0
-                    sender = row[idx] if sel_sender else None
-                    if sel_sender:
-                        idx += 1
-                    receiver = row[idx] if sel_receiver else None
-                    if sel_receiver:
-                        idx += 1
-                    content = row[idx]
-                    idx += 1
-                    timestamp = row[idx] if sel_ts else None
-                    parsed['chat_records'].append({
-                        'app_name': 'Chat',
-                        'sender_number': sender,
-                        'receiver_number': receiver,
-                        'message_content': content,
-                        'timestamp': self._coerce_timestamp(timestamp),
-                        'message_type': 'text',
-                        'is_deleted': False,
-                        'metadata': {'source_table': t}
-                    })
-            except Exception as e:
-                # Skip tables that are not message-like
-                continue
+    
 
     def _extract_calls(self, cursor: sqlite3.Cursor, schema: Dict[str, List[str]], parsed: Dict[str, Any]) -> None:
         call_tables = [
