@@ -10,12 +10,16 @@ from pathlib import Path
 import sqlite3
 import pandas as pd
 from app.parsers.chat_parser import ChatParser
+from app.parsers.call_parser import CallParser
+from app.parsers.contact_parser import ContactParser
 
 
 class UFDRParser:
     def __init__(self):
         self.supported_formats = ['.ufdr']
         self.chat_parser = ChatParser()
+        self.call_parser = CallParser()
+        self.contact_parser = ContactParser()
     
     def parse_ufdr_file(self, file_path: str) -> Dict[str, Any]:
         """Parse .ufdr files in a dynamic way:
@@ -270,9 +274,9 @@ class UFDRParser:
             # Extract chats (WhatsApp/SMS-like)
             self.chat_parser.extract(cursor, schema, parsed)
             # Extract calls
-            self._extract_calls(cursor, schema, parsed)
+            self.call_parser.extract(cursor, schema, parsed)
             # Extract contacts
-            self._extract_contacts(cursor, schema, parsed)
+            self.contact_parser.extract(cursor, schema, parsed)
             # Extract media metadata (if present in DB)
             self._extract_media(cursor, schema, parsed)
         finally:
@@ -282,70 +286,6 @@ class UFDRParser:
         cols_lower = set(c.lower() for c in cols)
         return all(req.lower() in cols_lower for req in required)
 
-    
-
-    def _extract_calls(self, cursor: sqlite3.Cursor, schema: Dict[str, List[str]], parsed: Dict[str, Any]) -> None:
-        call_tables = [
-            (t, cols) for t, cols in schema.items() if self._has_columns(cols, ['number', 'type', 'duration']) or self._has_columns(cols, ['caller', 'receiver', 'duration'])
-        ]
-        for t, cols in call_tables:
-            try:
-                colset = set(c.lower() for c in cols)
-                if {'caller', 'receiver', 'duration'} <= colset:
-                    query = f"SELECT caller, receiver, duration, type, date FROM {t}"
-                else:
-                    # Android calls: number, type, duration, date
-                    query = f"SELECT number, number, duration, type, date FROM {t}"
-                for a, b, duration, call_type, date_val in cursor.execute(query):
-                    parsed['call_records'].append({
-                        'caller_number': a,
-                        'receiver_number': b,
-                        'call_type': str(call_type) if call_type is not None else 'unknown',
-                        'duration': int(duration) if duration is not None else 0,
-                        'timestamp': self._coerce_timestamp(date_val),
-                        'metadata': {'source_table': t}
-                    })
-            except Exception as e:
-                print(f"⚠️ Call extraction error from {t}: {e}")
-
-    def _extract_contacts(self, cursor: sqlite3.Cursor, schema: Dict[str, List[str]], parsed: Dict[str, Any]) -> None:
-        for t, cols in schema.items():
-            try:
-                lower_cols = [c.lower() for c in cols]
-                name_cols = [c for c in lower_cols if any(k in c for k in ['display_name', 'name', 'given_name'])]
-                phone_cols = [c for c in lower_cols if any(k in c for k in ['phone', 'number', 'msisdn'])]
-                email_cols = [c for c in lower_cols if 'email' in c]
-                if not name_cols:
-                    continue
-                select_cols = [name_cols[0]]
-                if phone_cols:
-                    select_cols.append(phone_cols[0])
-                if email_cols:
-                    select_cols.append(email_cols[0])
-                query = f"SELECT {', '.join(select_cols)} FROM {t}"
-                for row in cursor.execute(query):
-                    idx = 0
-                    name = row[idx]
-                    idx += 1
-                    phone_numbers: List[str] = []
-                    email_addresses: List[str] = []
-                    if phone_cols:
-                        val = row[idx]
-                        idx += 1
-                        if val is not None and str(val).strip() != '':
-                            phone_numbers = [str(val)]
-                    if email_cols:
-                        val = row[idx]
-                        if val is not None and str(val).strip() != '':
-                            email_addresses = [str(val)]
-                    parsed['contacts'].append({
-                        'name': name,
-                        'phone_numbers': phone_numbers,
-                        'email_addresses': email_addresses,
-                        'metadata': {'source_table': t}
-                    })
-            except Exception:
-                continue
 
     def _extract_media(self, cursor: sqlite3.Cursor, schema: Dict[str, List[str]], parsed: Dict[str, Any]) -> None:
         for t, cols in schema.items():
