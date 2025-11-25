@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Upload, FileText, AlertCircle, CheckCircle, User, Hash } from 'lucide-react';
 import axios from 'axios';
@@ -11,6 +12,7 @@ const UploadPage = ({ onCaseCreated }) => {
   const [uploadResult, setUploadResult] = useState(null);
   const [error, setError] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -39,7 +41,9 @@ const UploadPage = ({ onCaseCreated }) => {
       return;
     }
 
-    setUploading(true);
+    // START LOADING
+    setIsUploading(true); 
+    setUploading(true); // You can keep this if you use it elsewhere, or replace with isUploading
     setError(null);
 
     try {
@@ -86,6 +90,8 @@ const UploadPage = ({ onCaseCreated }) => {
         setError(`Upload failed: ${err.message}`);
       }
     } finally {
+      // STOP LOADING (Crucial: This runs even if there is an error)
+      setIsUploading(false);
       setUploading(false);
     }
   };
