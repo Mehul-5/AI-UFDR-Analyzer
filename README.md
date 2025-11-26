@@ -2,6 +2,9 @@
 
 An advanced AI-powered forensic analysis system for processing Universal Forensic Data Reader (UFDR) files. Features intelligent query processing, dynamic data visualization, and comprehensive forensic investigation capabilities.
 
+![Image](https://github.com/user-attachments/assets/b5bf4595-e389-42e1-81a8-3de35f01532f)
+
+
 ## 🚀 Features
 
 ### Core Capabilities
