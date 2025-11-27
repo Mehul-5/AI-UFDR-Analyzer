@@ -8,7 +8,7 @@ pytestmark = pytest.mark.asyncio
 
 async def test_health_check():
     """
-    Test 1: Verify the API is alive.
+    Test 1: Verify the API is alive .
     This hits the /health endpoint and checks for 200 OK.
     """
     # Create the transport for the FastAPI app
