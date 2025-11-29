@@ -1,8 +1,13 @@
+name: Backend Tests
+
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -29,14 +34,18 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        # Install test dependencies
+        python -m pip install --upgrade pip setuptools wheel
+        # Install test dependencies first
         pip install pytest httpx pytest-asyncio
         
         # Install backend dependencies efficiently
-        # We remove version pinning for 'click' and 'colorama' which often cause cross-platform issues
+        # We relax version pinning for packages that cause cross-platform issues
         if [ -f backend/requirements.txt ]; then
+          # Fix 'click' error (8.3.0 doesn't exist on linux pip yet)
           sed -i 's/click==8.3.0/click>=8.0.0/' backend/requirements.txt || true
+          # Fix 'numpy' error (2.3.3 doesn't exist on linux pip yet)
+          sed -i 's/numpy==2.3.3/numpy>=1.26.0/' backend/requirements.txt || true
+          
           pip install -r backend/requirements.txt
         fi
 
