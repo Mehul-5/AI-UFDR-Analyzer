@@ -1,0 +1,50 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      # We need a Redis service for the tests to connect to (mocking infrastructure)
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest httpx pytest-asyncio
+        if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
+
+    - name: Run Tests
+      env:
+        # We mock these for CI so we don't need real keys
+        GEMINI_API_KEY: "fake_key_for_ci"
+        POSTGRES_HOST: "localhost"
+        QDRANT_URL: "http://localhost:6333"
+        NEO4J_URI: "bolt://localhost:7687"
+        REDIS_HOST: "localhost"
+        PYTHONPATH: backend
+      run: |
+        cd backend
+        pytest
