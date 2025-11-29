@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [ main ]
 
-permissions:
-  contents: read
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -45,6 +42,8 @@ jobs:
           sed -i 's/click==8.3.0/click>=8.0.0/' backend/requirements.txt || true
           # Fix 'numpy' error (2.3.3 doesn't exist on linux pip yet)
           sed -i 's/numpy==2.3.3/numpy>=1.26.0/' backend/requirements.txt || true
+          # Fix 'pywin32' error (Windows only, remove on Linux)
+          sed -i '/pywin32/d' backend/requirements.txt || true
           
           pip install -r backend/requirements.txt
         fi
