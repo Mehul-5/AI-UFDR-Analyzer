@@ -3,6 +3,7 @@ from httpx import AsyncClient, ASGITransport
 from main import app  # Importing your FastAPI app instance
 import os
 from unittest.mock import patch, AsyncMock
+from app.services.data_processor import DataProcessor
 
 # Mark all tests in this file as async
 pytestmark = pytest.mark.asyncio
@@ -129,3 +130,48 @@ async def test_semantic_search_mock():
         
         # Verify the service was actually called with the right arguments
         mock_search.assert_called_once()
+
+@pytest.mark.asyncio
+async def test_process_file_database_interaction():
+    """
+    Test 4: Verify Database Storage Logic.
+    We mock the parser to return fake data, and mock the DB session
+    to ensure 'execute' is called to insert records.
+    """
+    # 1. Setup Fake Data
+    fake_parsed_data = {
+        'metadata': {'case_info': {'case_number': 'TEST-DB-001'}},
+        'chat_records': [{'sender_number': '123', 'message_content': 'Hello'}],
+        'call_records': [],
+        'contacts': [],
+        'media_files': []
+    }
+
+    # 2. Mock the Dependencies
+    # We patch the parser to return our fake data immediately
+    with patch("app.services.ufdr_parser.UFDRParser.parse_ufdr_file", return_value=fake_parsed_data):
+        
+        # We patch the DB manager's 'get_db' or the internal storage method
+        # Since 'process_ufdr_file' creates its own session or uses db_manager, 
+        # let's mock the internal '_store_in_case_postgres' method for simplicity.
+        # This confirms data_processor TRIES to save data.
+        
+        with patch.object(DataProcessor, "_store_in_case_postgres") as mock_store_postgres:
+            # We also need to mock the vector/graph storage to avoid errors
+            with patch.object(DataProcessor, "_store_in_case_qdrant"), \
+                 patch.object(DataProcessor, "_store_in_case_neo4j"):
+                
+                # 3. Initialize Processor
+                processor = DataProcessor()
+                
+                # 4. Run the method (using a fake file path)
+                await processor.process_ufdr_file("fake_path.ufdr", "TEST-DB-001", "Investigator X")
+                
+                # 5. Assertions
+                # Did it try to store data in Postgres?
+                mock_store_postgres.assert_called_once()
+                
+                # Check if it passed the correct data to the storage method
+                # args[0] is the parsed_data dict
+                called_args = mock_store_postgres.call_args[0]
+                assert called_args[0]['chat_records'][0]['message_content'] == 'Hello'
