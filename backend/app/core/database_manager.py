@@ -1,224 +1,226 @@
-from typing import List, Dict, Any, Optional
-import asyncio
-from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue
-from neo4j import GraphDatabase
+import os
 import redis
 import json
-from sqlalchemy.orm import Session
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
+from qdrant_client import QdrantClient
+from neo4j import GraphDatabase
+import logging
+from tenacity import retry, stop_after_attempt, wait_fixed, before_log
+
 from config.settings import settings
-from app.models.database import get_db
+from app.models.database import Base
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class DatabaseManager:
     def __init__(self):
+        self.postgres_engine = None
+        self.SessionLocal = None
         self.qdrant_client = None
         self.neo4j_driver = None
         self.redis_client = None
-        self._initialize_connections()
-    
-    def _initialize_connections(self):
-        """Initialize all database connections"""
+
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(2),
+        before=before_log(logger, logging.INFO)
+    )
+    def connect_postgres(self):
+        """Connect to PostgreSQL with retries."""
         try:
-            # Initialize Qdrant
+            self.postgres_engine = create_engine(settings.postgres_url)
+            self.SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=self.postgres_engine))
+            
+            # Verify connection
+            with self.postgres_engine.connect() as connection:
+                pass
+                
+            # Create tables
+            Base.metadata.create_all(bind=self.postgres_engine)
+            logger.info("✅ PostgreSQL connected and tables created.")
+        except Exception as e:
+            logger.error(f"❌ PostgreSQL connection failed: {e}")
+            raise e
+
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(2),
+        before=before_log(logger, logging.INFO)
+    )
+    def connect_qdrant(self):
+        """Connect to Qdrant with retries."""
+        try:
             self.qdrant_client = QdrantClient(
                 url=settings.qdrant_url,
                 api_key=settings.qdrant_api_key
             )
-            
-            # Initialize Neo4j
+            # Verify connection (simple call)
+            self.qdrant_client.get_collections()
+            logger.info("✅ Qdrant connected.")
+        except Exception as e:
+            logger.error(f"❌ Qdrant connection failed: {e}")
+            raise e
+
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(2),
+        before=before_log(logger, logging.INFO)
+    )
+    def connect_neo4j(self):
+        """Connect to Neo4j with retries."""
+        try:
             self.neo4j_driver = GraphDatabase.driver(
                 settings.neo4j_uri,
                 auth=(settings.neo4j_user, settings.neo4j_password)
             )
-            
-            # Initialize Redis
+            self.neo4j_driver.verify_connectivity()
+            logger.info("✅ Neo4j connected.")
+        except Exception as e:
+            logger.error(f"❌ Neo4j connection failed: {e}")
+            raise e
+
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(2),
+        before=before_log(logger, logging.INFO)
+    )
+    def connect_redis(self):
+        """Connect to Redis with retries."""
+        try:
             self.redis_client = redis.Redis(
                 host=settings.redis_host,
                 port=settings.redis_port,
                 password=settings.redis_password,
                 decode_responses=True
             )
-            
-            print("All database connections initialized successfully")
-            
+            self.redis_client.ping()
+            logger.info("✅ Redis connected.")
         except Exception as e:
-            print(f"Error initializing database connections: {e}")
-    
-    # Removed: create_qdrant_collections() - Collections are now created dynamically per case
-    # This eliminates demo collections and ensures only case-specific collections exist
-    
-    def store_vector_data(self, collection_name: str, points: List[PointStruct]):
-        """Store vector data in Qdrant"""
+            logger.error(f"❌ Redis connection failed: {e}")
+            raise e
+
+    def connect_all(self):
+        """Initialize all database connections."""
         try:
-            self.qdrant_client.upsert(
-                collection_name=collection_name,
-                points=points
-            )
-            return True
-        except Exception as e:
-            print(f"Error storing vector data: {e}")
-            return False
-    
-    def search_vectors(self, collection_name: str, query_vector: List[float], 
-                      limit: int = 10, score_threshold: float = 0.7,
-                      filter_conditions: Optional[Filter] = None) -> List[Dict]:
+            self.connect_postgres()
+        except Exception:
+            logger.warning("⚠️ PostgreSQL initialization failed - continuing without structured DB")
+            
+        try:
+            self.connect_qdrant()
+        except Exception:
+            logger.warning("⚠️ Qdrant initialization failed - continuing without vector DB")
+            
+        try:
+            self.connect_neo4j()
+        except Exception:
+            logger.warning("⚠️ Neo4j initialization failed - continuing without graph DB")
+            
+        try:
+            self.connect_redis()
+        except Exception:
+            logger.warning("⚠️ Redis initialization failed - continuing without cache")
+
+    def get_db(self):
+        """Get SQLAlchemy database session."""
+        if not self.SessionLocal:
+            raise Exception("Database not initialized")
+        db = self.SessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    def close_connections(self):
+        """Close all connections."""
+        if self.postgres_engine:
+            self.postgres_engine.dispose()
+        if self.neo4j_driver:
+            self.neo4j_driver.close()
+        if self.redis_client:
+            self.redis_client.close()
+        logger.info("Database connections closed successfully")
+
+    # Alias for backward compatibility
+    close_all = close_connections
+
+    def search_vectors(self, collection_name, query_vector, limit=10, score_threshold=0.7):
         """Search vectors in Qdrant"""
+        if not self.qdrant_client:
+            return []
         try:
             results = self.qdrant_client.search(
                 collection_name=collection_name,
                 query_vector=query_vector,
                 limit=limit,
-                score_threshold=score_threshold,
-                query_filter=filter_conditions
+                score_threshold=score_threshold
             )
             return [
-                {
-                    "id": result.id,
-                    "score": result.score,
-                    "payload": result.payload
-                }
-                for result in results
+                {"id": hit.id, "score": hit.score, "payload": hit.payload}
+                for hit in results
             ]
         except Exception as e:
-            print(f"Error searching vectors: {e}")
+            logger.error(f"Vector search failed: {e}")
             return []
-    
-    def create_neo4j_relationships(self, data: Dict[str, Any]):
-        """Create relationships in Neo4j"""
-        with self.neo4j_driver.session() as session:
-            try:
-                # Create person nodes
-                if "contacts" in data:
-                    for contact in data["contacts"]:
-                        session.run(
-                            """
-                            MERGE (p:Person {phone: $phone})
-                            SET p.name = $name, p.emails = $emails
-                            """,
-                            phone=contact.get("phone"),
-                            name=contact.get("name"),
-                            emails=contact.get("emails", [])
-                        )
-                
-                # Create communication relationships
-                if "chat_records" in data:
-                    for chat in data["chat_records"]:
-                        session.run(
-                            """
-                            MATCH (sender:Person {phone: $sender})
-                            MATCH (receiver:Person {phone: $receiver})
-                            CREATE (sender)-[:COMMUNICATED {
-                                type: 'chat',
-                                app: $app,
-                                timestamp: $timestamp,
-                                message_id: $message_id
-                            }]->(receiver)
-                            """,
-                            sender=chat.get("sender_number"),
-                            receiver=chat.get("receiver_number"),
-                            app=chat.get("app_name"),
-                            timestamp=chat.get("timestamp"),
-                            message_id=str(chat.get("id"))
-                        )
-                
-                if "call_records" in data:
-                    for call in data["call_records"]:
-                        session.run(
-                            """
-                            MATCH (caller:Person {phone: $caller})
-                            MATCH (receiver:Person {phone: $receiver})
-                            CREATE (caller)-[:CALLED {
-                                type: $call_type,
-                                duration: $duration,
-                                timestamp: $timestamp,
-                                call_id: $call_id
-                            }]->(receiver)
-                            """,
-                            caller=call.get("caller_number"),
-                            receiver=call.get("receiver_number"),
-                            call_type=call.get("call_type"),
-                            duration=call.get("duration"),
-                            timestamp=call.get("timestamp"),
-                            call_id=str(call.get("id"))
-                        )
-                
-                return True
-            except Exception as e:
-                print(f"Error creating Neo4j relationships: {e}")
-                return False
-    
-    def find_connections(self, phone_number: str, depth: int = 2) -> List[Dict]:
-        """Find connections for a phone number in Neo4j"""
-        with self.neo4j_driver.session() as session:
-            try:
-                result = session.run(
-                    """
-                    MATCH path = (p:Person {phone: $phone})-[*1..$depth]-(connected:Person)
-                    RETURN path, connected
-                    LIMIT 100
-                    """,
-                    phone=phone_number,
-                    depth=depth
-                )
-                
-                connections = []
-                for record in result:
-                    path = record["path"]
-                    connected = record["connected"]
-                    connections.append({
-                        "connected_person": dict(connected),
-                        "path_length": len(path.relationships),
-                        "relationships": [dict(rel) for rel in path.relationships]
-                    })
-                
-                return connections
-            except Exception as e:
-                print(f"Error finding connections: {e}")
-                return []
-    
-    def cache_query_result(self, query_hash: str, result: Dict, ttl: int = 3600):
-        """Cache query results in Redis"""
-        try:
-            self.redis_client.setex(
-                f"query_cache:{query_hash}",
-                ttl,
-                json.dumps(result, default=str)
-            )
-        except Exception as e:
-            print(f"Error caching result: {e}")
-    
-    def get_cached_result(self, query_hash: str) -> Optional[Dict]:
-        """Get cached query result from Redis"""
-        try:
-            cached = self.redis_client.get(f"query_cache:{query_hash}")
-            if cached:
-                return json.loads(cached)
-        except Exception as e:
-            print(f"Error getting cached result: {e}")
-        return None
-    
-    def clear_cache(self) -> bool:
-        """Clear all Redis cache for this application namespace."""
-        try:
-            # If namespaced, delete pattern; here we flush the DB safely in dev
-            self.redis_client.flushdb()
-            return True
-        except Exception as e:
-            print(f"Error clearing cache: {e}")
-            return False
-    
-    def ping_redis(self) -> bool:
-        try:
-            return bool(self.redis_client.ping())
-        except Exception:
-            return False
-    
-    def close_connections(self):
-        """Close all database connections"""
-        if self.neo4j_driver:
-            self.neo4j_driver.close()
-        if self.redis_client:
-            self.redis_client.close()
 
-# Global database manager instance
+    def find_connections(self, phone_number, depth=2):
+        """Find connections in Neo4j"""
+        if not self.neo4j_driver:
+            return []
+        query = """
+        MATCH (p:Person {phone_number: $phone})
+        CALL apoc.path.subgraphAll(p, {maxLevel: $depth})
+        YIELD nodes, relationships
+        RETURN nodes, relationships
+        """
+        try:
+            with self.neo4j_driver.session() as session:
+                result = session.run(query, phone=phone_number, depth=depth)
+                return result.data()
+        except Exception as e:
+            logger.error(f"Graph search failed: {e}")
+            return []
+            
+    def clear_cache(self):
+        """Clear Redis cache"""
+        if self.redis_client:
+            return self.redis_client.flushall()
+        return False
+        
+    def ping_redis(self):
+        """Ping Redis"""
+        if self.redis_client:
+            return self.redis_client.ping()
+        return False
+
+    def get_cached_result(self, key: str):
+        """Get a value from Redis cache."""
+        if not self.redis_client:
+            return None
+        try:
+            val = self.redis_client.get(key)
+            if val:
+                return json.loads(val)
+            return None
+        except Exception as e:
+            logger.error(f"Redis get failed: {e}")
+            return None
+
+    def set_cached_result(self, key: str, value: dict, expire: int = 3600):
+        """Set a value in Redis cache."""
+        if not self.redis_client:
+            return
+        try:
+            self.redis_client.setex(key, expire, json.dumps(value))
+        except Exception as e:
+            logger.error(f"Redis set failed: {e}")
+
+    # Alias for backward compatibility with ai_service.py
+    def cache_query_result(self, key: str, value: dict, ttl: int = 3600):
+        """Alias for set_cached_result to support legacy calls."""
+        return self.set_cached_result(key, value, ttl)
+
 db_manager = DatabaseManager()
