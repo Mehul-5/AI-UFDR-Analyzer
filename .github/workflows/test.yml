@@ -33,12 +33,18 @@ jobs:
       run: |
         python -m pip install --upgrade pip setuptools wheel
         
-        # Install from the clean CI-specific file
-        if [ -f backend/requirements.ci.txt ]; then
-            pip install -r backend/requirements.ci.txt
-        else
-            # Fallback (should not happen if you commit the file)
-            pip install pytest httpx pytest-asyncio tenacity python-dotenv fastapi uvicorn pydantic-settings sqlalchemy qdrant-client neo4j google-generativeai python-multipart psycopg2-binary pandas
+        # NUCLEAR OPTION: Explicitly install ALL backend dependencies needed for tests.
+        # Added pandas and numpy to fix the latest error
+        pip install pytest httpx pytest-asyncio tenacity python-dotenv fastapi uvicorn pydantic-settings sqlalchemy qdrant-client neo4j google-generativeai python-multipart psycopg2-binary pandas numpy
+        
+        # We still try to install from requirements.txt for other libs, but allow failure
+        if [ -f backend/requirements.txt ]; then
+          sed -i 's/\r$//' backend/requirements.txt
+          sed -i '/pywin32/d' backend/requirements.txt || true
+          sed -i 's/click==8.3.0/click>=8.0.0/' backend/requirements.txt || true
+          sed -i 's/numpy==2.3.3/numpy>=1.26.0/' backend/requirements.txt || true
+          
+          pip install -r backend/requirements.txt || echo "⚠️ Warning: Requirements file installation had errors, but continuing with explicit packages."
         fi
 
     - name: Run Tests
