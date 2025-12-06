@@ -1,0 +1,28 @@
+# Ignore git
+.git
+.gitignore
+
+# Ignore Python cache and environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+.Python
+
+# Pip logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Ignore frontend dependencies and build folders
+frontend/node_modules/
+frontend/build/
+
+# Ignore environment variable files
+.env
+.env.local
+
+# Ignore temp + OS files
+.DS_Store
+*.log
