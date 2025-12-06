@@ -1,4 +1,4 @@
-Core App Dependencies
+
 
 fastapi==0.117.1
 uvicorn==0.37.0
@@ -15,7 +15,6 @@ psycopg2-binary==2.9.10
 pandas==2.2.0
 numpy>=1.26.0
 
-Test Dependencies
 
 pytest==8.3.3
 httpx==0.27.2
