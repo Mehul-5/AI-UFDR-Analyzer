@@ -34,8 +34,8 @@ jobs:
         python -m pip install --upgrade pip setuptools wheel
         
         # NUCLEAR OPTION: Explicitly install ALL backend dependencies needed for tests.
-        # We do this to bypass any Windows-specific issues or missing packages in requirements.txt
-        pip install pytest httpx pytest-asyncio tenacity python-dotenv fastapi uvicorn pydantic-settings sqlalchemy qdrant-client neo4j google-generativeai python-multipart
+        # Added psycopg2-binary to fix the database driver error
+        pip install pytest httpx pytest-asyncio tenacity python-dotenv fastapi uvicorn pydantic-settings sqlalchemy qdrant-client neo4j google-generativeai python-multipart psycopg2-binary
         
         # We still try to install from requirements.txt for other libs, but allow failure
         if [ -f backend/requirements.txt ]; then
