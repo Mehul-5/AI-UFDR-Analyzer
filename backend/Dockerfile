@@ -1,9 +1,11 @@
+# syntax=docker/dockerfile:1
 # Stage 1: Builder
-FROM python:3.10-slim as builder
+FROM python:3.10-slim AS builder
 
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
-# Install system dependencies for building python packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
@@ -12,46 +14,34 @@ RUN apt-get update && \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Create virtual environment
-RUN python -m venv /opt/venv
-# Enable venv
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Install dependencies into the venv
+RUN pip install --upgrade pip
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
 
-# Stage 2: Runner (Final Image)
+# Stage 2: Runner
 FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install ONLY runtime system dependencies (libpq for postgres)
+# Install runtime libs
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
-# Copy the virtual environment from builder
-# This is the key step: We copy the pre-installed environment
-COPY --from=builder /opt/venv /opt/venv
+# Copy requirements just to know what we installed (metadata)
+COPY --from=builder /app/requirements.txt .
 
-# Enable venv in the path
-ENV PATH="/opt/venv/bin:$PATH"
+# MOUNT the wheels from builder stage, install them, and detach.
+# The wheels themselves are NEVER copied to the final image layer.
+RUN --mount=type=bind,from=builder,source=/app/wheels,target=/wheels \
+    pip install --no-cache /wheels/*
 
-# Copy application code
 COPY . .
-
-# Permissions
 RUN chown -R appuser:appuser /app
 
-# Switch user
 USER appuser
-
-# Run
 CMD ["python", "main.py"]
