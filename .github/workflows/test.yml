@@ -32,18 +32,23 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip setuptools wheel
-        # Install test dependencies AND tenacity explicitly
-        pip install pytest httpx pytest-asyncio tenacity
         
-        # Install backend dependencies efficiently
+        # 1. Install test dependencies AND critical app libs explicitly
+        # We force-install python-dotenv and tenacity here to guarantee they exist
+        pip install pytest httpx pytest-asyncio tenacity python-dotenv fastapi uvicorn
+        
+        # 2. Install backend dependencies from file
         if [ -f backend/requirements.txt ]; then
-          # Fix 'click' error (8.3.0 doesn't exist on linux pip yet)
+          # Fix Windows line endings (CRLF -> LF) which break Linux tools like sed
+          sed -i 's/\r$//' backend/requirements.txt
+          
+          # Fix version/platform conflicts
           sed -i 's/click==8.3.0/click>=8.0.0/' backend/requirements.txt || true
-          # Fix 'numpy' error (2.3.3 doesn't exist on linux pip yet)
           sed -i 's/numpy==2.3.3/numpy>=1.26.0/' backend/requirements.txt || true
-          # Fix 'pywin32' error (Windows only, remove on Linux)
+          # Remove Windows-only packages
           sed -i '/pywin32/d' backend/requirements.txt || true
           
+          # Install the rest
           pip install -r backend/requirements.txt
         fi
 
