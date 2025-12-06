@@ -1,0 +1,22 @@
+Core App Dependencies
+
+fastapi==0.117.1
+uvicorn==0.37.0
+python-dotenv==1.1.1
+tenacity>=8.2.0
+pydantic==2.11.9
+pydantic-settings==2.11.0
+sqlalchemy==2.0.43
+qdrant-client==1.15.1
+neo4j==5.28.2
+google-generativeai==0.8.5
+python-multipart==0.0.20
+psycopg2-binary==2.9.10
+pandas==2.2.0
+numpy>=1.26.0
+
+Test Dependencies
+
+pytest==8.3.3
+httpx==0.27.2
+pytest-asyncio==0.24.0
